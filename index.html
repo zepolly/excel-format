@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#217346">
+  <title>Практика: ввод данных и форматы ячеек</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+      background: #e7e7e7;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding:
+        max(8px, env(safe-area-inset-top))
+        max(8px, env(safe-area-inset-right))
+        max(8px, env(safe-area-inset-bottom))
+        max(8px, env(safe-area-inset-left));
+    }
+    .task-banner {
+      background: #fff;
+      border: 1px solid #c6c6c6;
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .task-banner.success {
+      background: #e8f5e9;
+      border-color: #a5d6a7;
+    }
+    .task-banner.onboarding-lit {
+      position: relative;
+      z-index: 5001;
+      box-shadow:
+        0 0 0 3px #217346,
+        0 8px 28px rgba(33, 115, 70, 0.35);
+    }
+    .onboarding-root {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      box-sizing: border-box;
+    }
+    .onboarding-root.is-open {
+      display: flex;
+    }
+    .onboarding-dim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.48);
+    }
+    .onboarding-box {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border: 1px solid #c6c6c6;
+      border-radius: 10px;
+      padding: 20px 22px 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+      text-align: center;
+    }
+    .onboarding-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #222;
+    }
+    .onboarding-subtitle {
+      margin: 12px 0 0;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: #333;
+    }
+    .onboarding-subtitle.is-hidden {
+      display: none;
+    }
+    .onboarding-btn {
+      margin-top: 18px;
+      padding: 10px 28px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      background: #217346;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+    }
+    .onboarding-btn:hover {
+      background: #1a5c38;
+    }
+    .task-banner p { margin: 0; font-size: 0.95rem; line-height: 1.45; }
+    .task-banner .phase { font-size: 0.8rem; color: #555; margin-bottom: 6px; }
+    .excel-shell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: #fff;
+      border: 1px solid #a0a0a0;
+      border-radius: 2px;
+      overflow: hidden;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .title-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px 6px;
+      background: linear-gradient(180deg, #fff 0%, #f3f3f3 100%);
+      border-bottom: 1px solid #d4d4d4;
+      flex-wrap: wrap;
+    }
+    .quick-access {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+    .quick-access button {
+      width: 28px;
+      height: 24px;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .quick-access button:hover { background: #e5e5e5; border-color: #c6c6c6; }
+    .quick-access button.active-qa {
+      background: #cde6d4;
+      border-color: #217346;
+    }
+    .doc-title {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      color: #333;
+      min-width: 120px;
+    }
+    .ribbon-wrap {
+      background: #f3f3f3;
+      border-bottom: 1px solid #d4d4d4;
+    }
+    .ribbon-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 4px;
+      border-bottom: 1px solid #d4d4d4;
+      flex-wrap: wrap;
+    }
+    .ribbon-tabs button {
+      padding: 6px 12px 8px;
+      font-size: 12px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #444;
+      font-family: inherit;
+    }
+    .ribbon-tabs button:hover { color: #217346; }
+    .ribbon-tabs button.active {
+      background: #fff;
+      color: #217346;
+      font-weight: 600;
+      border: 1px solid #d4d4d4;
+      border-bottom-color: #fff;
+      margin-bottom: -1px;
+    }
+    .ribbon-panel {
+      display: none;
+      padding: 8px 10px 10px;
+      background: #fff;
+      border-bottom: 1px solid #d4d4d4;
+      min-height: 72px;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ribbon-panel.visible { display: flex; }
+    .ribbon-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 0 10px 4px;
+      border-right: 1px solid #e0e0e0;
+    }
+    .ribbon-group:last-child { border-right: none; }
+    .ribbon-group .g-label {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+    .ribbon-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .rb {
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid #c6c6c6;
+      background: linear-gradient(180deg, #fafafa 0%, #ececec 100%);
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 28px;
+    }
+    .rb:hover { background: linear-gradient(180deg, #fff 0%, #e8e8e8 100%); }
+    .rb:active { background: #d8d8d8; }
+    .rb.icon-only { min-width: 32px; padding: 6px 8px; font-weight: 700; }
+    .rb.primary { background: linear-gradient(180deg, #e8f4ec 0%, #cde6d4 100%); border-color: #217346; }
+    .ribbon-group select.fmt-select {
+      min-width: 148px;
+      max-width: min(180px, 100%);
+      padding: 4px 8px;
+      font-size: 12px;
+      border: 1px solid #c6c6c6;
+      border-radius: 2px;
+      background: #fff;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .formula-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: #fff;
+      border-bottom: 1px solid #d4d4d4;
+      font-size: 12px;
+    }
+    .name-box {
+      width: 72px;
+      padding: 3px 6px;
+      border: 1px solid #c6c6c6;
+      border-radius: 2px;
+      background: #fff;
+      text-align: center;
+      font-family: inherit;
+    }
+    .fx-label { color: #888; font-style: italic; width: 22px; text-align: center; }
+    .formula-input {
+      flex: 1;
+      padding: 4px 8px;
+      border: 1px solid #c6c6c6;
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    .grid-scroll {
+      flex: 1;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      background: #fcfcfc;
+      min-height: 200px;
+    }
+    table.excel {
+      border-collapse: collapse;
+      font-size: 12px;
+      user-select: none;
+      table-layout: fixed;
+    }
+    table.excel th,
+    table.excel td {
+      width: 72px;
+      min-width: 56px;
+      height: 22px;
+      border: 1px solid #d4d4d4;
+      padding: 2px 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    table.excel thead th {
+      background: #217346;
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+    }
+    table.excel tbody th {
+      background: #e8e8e8;
+      color: #333;
+      font-weight: 600;
+      text-align: center;
+    }
+    table.excel tbody td {
+      background: #fff;
+      cursor: cell;
+      text-align: right;
+    }
+    table.excel tbody td.text-left { text-align: left; }
+    table.excel tbody td.range-cell {
+      background: #d8ead8;
+      box-shadow: inset 0 0 0 1px #8abf95;
+    }
+    table.excel tbody td.range-active {
+      outline: 2px solid #217346;
+      outline-offset: -2px;
+      z-index: 1;
+    }
+    table.excel tbody td.has-link {
+      color: #0563c1;
+      text-decoration: underline;
+    }
+    .sheet-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      background: #e1e1e1;
+      border-top: 1px solid #b4b4b4;
+      padding: 2px 4px 0;
+      flex-wrap: wrap;
+    }
+    .sheet-tab {
+      padding: 5px 14px 6px;
+      font-size: 12px;
+      border: 1px solid #b4b4b4;
+      border-bottom: none;
+      background: linear-gradient(180deg, #ececec 0%, #d8d8d8 100%);
+      cursor: pointer;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: inherit;
+      border-radius: 2px 2px 0 0;
+      margin-right: 1px;
+    }
+    .sheet-tab:hover { background: linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%); }
+    .sheet-tab.active {
+      background: #fff;
+      border-color: #b4b4b4;
+      font-weight: 600;
+      padding-bottom: 7px;
+      margin-bottom: -1px;
+    }
+    .sheet-tab .color-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .sheet-add {
+      padding: 4px 10px;
+      font-size: 14px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 2px;
+      margin-left: 4px;
+    }
+    .sheet-add:hover { background: #d0d0d0; }
+    .ctx-menu {
+      position: fixed;
+      z-index: 1000;
+      min-width: 220px;
+      background: #fff;
+      border: 1px solid #b4b4b4;
+      box-shadow: 2px 2px 8px rgba(0,0,0,.15);
+      padding: 4px 0;
+      font-size: 12px;
+      display: none;
+    }
+    .ctx-menu.visible { display: block; }
+    .ctx-item {
+      padding: 6px 20px 6px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .ctx-item:hover { background: #cde6d4; }
+    .ctx-item.disabled { opacity: 0.45; pointer-events: none; }
+    .ctx-sep { height: 1px; background: #e0e0e0; margin: 4px 0; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 1100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal {
+      background: #fff;
+      border: 1px solid #a0a0a0;
+      border-radius: 2px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.2);
+      max-width: 400px;
+      width: 100%;
+      padding: 0;
+      font-size: 13px;
+    }
+    .modal h3 {
+      margin: 0;
+      padding: 10px 12px;
+      background: #f3f3f3;
+      border-bottom: 1px solid #d4d4d4;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .modal-body { padding: 12px 14px; }
+    .modal-body label { display: flex; align-items: center; gap: 8px; margin: 10px 0; cursor: pointer; }
+    .modal-footer {
+      padding: 10px 12px;
+      border-top: 1px solid #d4d4d4;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: #fafafa;
+    }
+    .modal-footer button {
+      padding: 6px 16px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      border-radius: 2px;
+      border: 1px solid #a0a0a0;
+      background: linear-gradient(180deg, #fafafa 0%, #ececec 100%);
+    }
+    .modal-footer button.primary {
+      background: linear-gradient(180deg, #e8f4ec 0%, #cde6d4 100%);
+      border-color: #217346;
+      font-weight: 600;
+    }
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 1200;
+      max-width: min(92vw, 440px);
+      max-height: min(70vh, 320px);
+      overflow-y: auto;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #1a1a1a;
+      background: #fff;
+      border: 1px solid #b4b4b4;
+      box-shadow: 0 12px 40px rgba(0,0,0,.2);
+      transform: translate(-50%, -50%) scale(0.96);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        visibility 0s linear 0.22s;
+    }
+    .toast.visible {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        visibility 0s;
+    }
+    .hidden { display: none !important; }
+    .rename-input {
+      font: inherit;
+      width: 100%;
+      max-width: 140px;
+      padding: 2px 4px;
+      border: 1px solid #217346;
+      border-radius: 2px;
+    }
+    @media (max-width: 600px) {
+      table.excel th, table.excel td { width: 64px; min-width: 48px; height: 28px; font-size: 11px; }
+      .title-bar { padding: 2px 6px 3px; gap: 4px; }
+      .quick-access button { width: 26px; height: 22px; font-size: 13px; }
+      .ribbon-tabs { padding: 0 2px; }
+      .ribbon-tabs button {
+        padding: 2px 8px 3px;
+        font-size: 11px;
+      }
+      .ribbon-panel {
+        padding: 4px 6px 5px;
+        min-height: 0;
+        gap: 8px;
+      }
+      .ribbon-group {
+        padding: 0 4px 2px;
+        gap: 2px;
+      }
+      .ribbon-group .g-label { margin-top: 0; font-size: 10px; }
+      .ribbon-row { gap: 3px; }
+      .rb {
+        padding: 4px 7px;
+        min-height: 30px;
+        font-size: 11px;
+      }
+      .rb.icon-only { min-width: 30px; padding: 4px 6px; }
+      .formula-bar { padding: 2px 6px; gap: 4px; }
+      .name-box { padding: 2px 4px; }
+      .formula-input { padding: 3px 6px; }
+      .onboarding-box {
+        padding: 16px 16px 14px;
+      }
+      .onboarding-title {
+        font-size: 1.05rem;
+      }
+      .onboarding-subtitle {
+        font-size: 1rem;
+      }
+      .onboarding-btn {
+        min-height: 48px;
+        margin-top: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="task-banner" id="taskBanner">
+    <div class="phase" id="phaseLabel"></div>
+    <p id="taskText"></p>
+  </div>
+
+  <div class="excel-shell" id="excelShell">
+    <div class="title-bar">
+      <div class="quick-access" id="quickAccess" aria-label="Панель быстрого доступа">
+        <button type="button" data-qa="save" title="Сохранить">💾</button>
+        <button type="button" data-qa="undo" title="Отменить">↶</button>
+        <button type="button" data-qa="redo" title="Вернуть">↷</button>
+      </div>
+      <div class="doc-title">Книга1 — Excel (тренажёр: форматы)</div>
+    </div>
+
+    <div class="ribbon-wrap">
+      <div class="ribbon-tabs" role="tablist">
+        <button type="button" class="active" data-tab="home">Главная</button>
+        <button type="button" data-tab="insert">Вставка</button>
+        <button type="button" data-tab="layout">Разметка страницы</button>
+        <button type="button" data-tab="formulas">Формулы</button>
+        <button type="button" data-tab="data">Данные</button>
+        <button type="button" data-tab="view">Вид</button>
+      </div>
+      <div class="ribbon-panel visible" id="panel-home" data-panel="home">
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb icon-only" id="btn-bold" title="Жирный (Ctrl+B)"><strong>B</strong></button>
+            <button type="button" class="rb icon-only" id="btn-italic" title="Курсив"><em>I</em></button>
+          </div>
+          <span class="g-label">Шрифт</span>
+        </div>
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <select id="format-select" class="fmt-select" title="Формат ячейки" aria-label="Формат числа">
+              <option value="general">Общий</option>
+              <option value="number">Числовой</option>
+              <option value="currency">Денежный</option>
+              <option value="percent">Процентный</option>
+              <option value="date">Дата</option>
+              <option value="time">Время</option>
+              <option value="text">Текстовый</option>
+            </select>
+          </div>
+          <span class="g-label">Число</span>
+        </div>
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-merge">Объединить и поместить в центре</button>
+          </div>
+          <span class="g-label">Выравнивание</span>
+        </div>
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-sum">∑ Автосумма</button>
+          </div>
+          <span class="g-label">Редактирование</span>
+        </div>
+      </div>
+      <div class="ribbon-panel" id="panel-insert" data-panel="insert">
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb primary" id="btn-hyperlink">Ссылка</button>
+            <button type="button" class="rb" id="btn-table">Таблица</button>
+          </div>
+          <span class="g-label">Таблицы и диаграммы</span>
+        </div>
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-chart">Диаграмма</button>
+          </div>
+          <span class="g-label">Иллюстрации</span>
+        </div>
+      </div>
+      <div class="ribbon-panel" id="panel-layout" data-panel="layout">
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-margins">Поля</button>
+            <button type="button" class="rb" id="btn-orient">Ориентация</button>
+          </div>
+          <span class="g-label">Параметры страницы</span>
+        </div>
+      </div>
+      <div class="ribbon-panel" id="panel-formulas" data-panel="formulas">
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-fn-wizard">Вставить функцию</button>
+          </div>
+          <span class="g-label">Библиотека функций</span>
+        </div>
+      </div>
+      <div class="ribbon-panel" id="panel-data" data-panel="data">
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-sort">Сортировка</button>
+            <button type="button" class="rb" id="btn-filter">Фильтр</button>
+          </div>
+          <span class="g-label">Сортировка и фильтр</span>
+        </div>
+      </div>
+      <div class="ribbon-panel" id="panel-view" data-panel="view">
+        <div class="ribbon-group">
+          <div class="ribbon-row">
+            <button type="button" class="rb" id="btn-gridlines">Сетка</button>
+            <button type="button" class="rb" id="btn-freeze">Закрепить области</button>
+          </div>
+          <span class="g-label">Показать</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula-bar">
+      <input class="name-box" id="nameBox" readonly value="A1" aria-label="Имя ячейки">
+      <span class="fx-label">fx</span>
+      <input class="formula-input" id="formulaInput" value="" aria-label="Строка формул" autocomplete="off">
+    </div>
+
+    <div class="grid-scroll" id="gridScroll">
+      <table class="excel" id="grid" aria-label="Лист"></table>
+    </div>
+
+    <div class="sheet-bar" id="sheetBar"></div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu" role="menu"></div>
+
+  <div class="modal-overlay" id="modalMoveCopy">
+    <div class="modal">
+      <h3>Переместить или скопировать</h3>
+      <div class="modal-body">
+        <p style="margin:0 0 8px;">В книгу: <strong>Книга1</strong></p>
+        <p style="margin:0 0 8px;">Перед листом:</p>
+        <select id="moveBefore" style="width:100%; padding:6px; font-size:12px;"></select>
+        <label><input type="checkbox" id="chkCreateCopy"> Создать копию</label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btnMoveCancel">Отмена</button>
+        <button type="button" class="primary" id="btnMoveOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalHyperlink">
+    <div class="modal">
+      <h3>Вставка гиперссылки</h3>
+      <div class="modal-body">
+        <p style="margin:0 0 8px;">Адрес:</p>
+        <input type="text" id="hyperlinkUrl" style="width:100%; padding:6px; font-size:12px;" value="https://support.microsoft.com/excel">
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btnLinkCancel">Отмена</button>
+        <button type="button" class="primary" id="btnLinkOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div
+    id="onboardingRoot"
+    class="onboarding-root"
+    aria-modal="true"
+    role="dialog"
+    aria-labelledby="onboardingTitle"
+  >
+    <div class="onboarding-dim"></div>
+    <div class="onboarding-box">
+      <p class="onboarding-title" id="onboardingTitle"></p>
+      <p class="onboarding-subtitle" id="onboardingSubtitle"></p>
+      <button type="button" class="onboarding-btn" id="onboardingBtn">Далее</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const COLS = 8;
+      const ROWS = 12;
+      const PHASE_FORMAT = "format";
+
+      function emptyRows() {
+        const rows = [];
+        for (let i = 0; i < ROWS; i++) {
+          const row = [];
+          for (let j = 0; j < COLS; j++) row.push("");
+          rows.push(row);
+        }
+        return rows;
+      }
+
+      function buildPracticeRows() {
+        const r = emptyRows();
+        r[0] = ["Задание", "Ваша ячейка (столбец B)", "", "", "", "", "", ""];
+        r[1] = [
+          "1. Чистое число: введите 1500 в B2 (через строку формул или после выделения ячейки).",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[2] = [
+          "2. Текст с ведущими нулями: в строке формул введите '007 (апостроф, как в Excel) в B3.",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[3] = [
+          "3. Дата: в B4 введите 15.03.2026 (день.месяц.год).",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[4] = [
+          "4. Время: в B5 введите 9:45 (можно 09:45).",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[5] = [
+          "5. Процент: в B6 сначала введите 0.25, затем на вкладке Главная выберите формат «Процентный» для этой ячейки.",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[6] = [
+          "6. Деньги: в B7 введите 1999.5 и примените формат «Денежный» (Главная → Число).",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[7] = [
+          "7. Текстовый формат: выделите B8, в списке формата выберите «Текстовый», затем введите 001-55 (с дефисом).",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        r[8] = [
+          "Подсказка: значение вводится в активной ячейке; строка формул внизу показывает исходные данные для правки.",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ];
+        return r;
+      }
+
+      const INITIAL_SHEETS = [
+        {
+          name: "Упражнение",
+          tabColor: null,
+          align: {},
+          bold: {},
+          merge: null,
+          formats: {},
+          rows: buildPracticeRows(),
+          hyperlinks: {},
+        },
+      ];
+
+      function deepSheet(s) {
+        return {
+          name: s.name,
+          tabColor: s.tabColor,
+          align: Object.assign({}, s.align),
+          bold: Object.assign({}, s.bold),
+          merge: s.merge ? Object.assign({}, s.merge) : null,
+          formats: Object.assign({}, s.formats || {}),
+          rows: s.rows.map((row) => row.slice()),
+          hyperlinks: s.hyperlinks ? Object.assign({}, s.hyperlinks) : {},
+        };
+      }
+
+      const colLabel = (i) => String.fromCharCode(65 + i);
+      const cellKey = (r, c) => r + "," + c;
+
+      let sheets = INITIAL_SHEETS.map(deepSheet);
+      let activeIndex = 0;
+      let phase = PHASE_FORMAT;
+      let renameIndex = -1;
+      let formatStep = 0;
+      let formulaBarCommitting = false;
+
+      const FORMAT_TASKS = [
+        {
+          id: "n1500",
+          text: "Задание 1 из 7. В ячейке B2 введите число 1500. Подтвердите ввод кликом вне строки формул или клавишей Enter.",
+          check: function () {
+            const sh = sheets[0];
+            const v = sh.rows[1][1];
+            return typeof v === "number" && Math.abs(v - 1500) < 1e-9;
+          },
+        },
+        {
+          id: "text007",
+          text: "Задание 2 из 7. В B3 введите текст 007 через апостроф: в строке формул наберите '007 и подтвердите ввод (так Excel хранит ведущие нули).",
+          check: function () {
+            const sh = sheets[0];
+            return String(sh.rows[2][1]) === "007";
+          },
+        },
+        {
+          id: "date",
+          text: "Задание 3 из 7. В B4 введите дату 15.03.2026 (цифрами и точками).",
+          check: function () {
+            const sh = sheets[0];
+            const d = parseDateValue(sh.rows[3][1]);
+            return (
+              d &&
+              d.getDate() === 15 &&
+              d.getMonth() === 2 &&
+              d.getFullYear() === 2026
+            );
+          },
+        },
+        {
+          id: "time",
+          text: "Задание 4 из 7. В B5 введите время 9:45 (допустимо 09:45).",
+          check: function () {
+            const sh = sheets[0];
+            const t = parseTimeParts(sh.rows[4][1]);
+            return t && t.h === 9 && t.m === 45;
+          },
+        },
+        {
+          id: "percent",
+          text: "Задание 5 из 7. В B6 введите 0.25, затем на вкладке Главная в группе «Число» выберите формат «Процентный» для этой ячейки.",
+          check: function () {
+            const sh = sheets[0];
+            const fmt = getFormat(sh, 5, 1);
+            const v = sh.rows[5][1];
+            const ok =
+              typeof v === "number" && Math.abs(v - 0.25) < 1e-9;
+            return fmt === "percent" && ok;
+          },
+        },
+        {
+          id: "currency",
+          text: "Задание 6 из 7. В B7 введите 1999.5 и примените к ячейке формат «Денежный».",
+          check: function () {
+            const sh = sheets[0];
+            const fmt = getFormat(sh, 6, 1);
+            const v = sh.rows[6][1];
+            const ok =
+              typeof v === "number" && Math.abs(v - 1999.5) < 1e-9;
+            return fmt === "currency" && ok;
+          },
+        },
+        {
+          id: "textdash",
+          text: "Задание 7 из 7. Выделите B8, в списке «Число» выберите «Текстовый», затем введите 001-55 (с дефисом).",
+          check: function () {
+            const sh = sheets[0];
+            const fmt = getFormat(sh, 7, 1);
+            return fmt === "text" && String(sh.rows[7][1]) === "001-55";
+          },
+        },
+      ];
+
+      function getFormat(sh, r, c) {
+        return sh.formats[cellKey(r, c)] || "general";
+      }
+
+      function parseDateValue(v) {
+        if (v instanceof Date && !isNaN(v.getTime())) return v;
+        if (typeof v === "number" && isFinite(v)) return new Date(v);
+        const s = String(v).trim();
+        const m = s.match(
+          /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/
+        );
+        if (m) {
+          const day = Number(m[1]);
+          const month = Number(m[2]) - 1;
+          const year = Number(m[3]);
+          const d = new Date(year, month, day);
+          if (
+            d.getFullYear() === year &&
+            d.getMonth() === month &&
+            d.getDate() === day
+          )
+            return d;
+        }
+        return null;
+      }
+
+      function parseTimeParts(v) {
+        if (v === "" || v === null || v === undefined) return null;
+        const s = String(v).trim();
+        const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+        if (!m) return null;
+        const h = Number(m[1]);
+        const min = Number(m[2]);
+        if (h < 0 || h > 23 || min < 0 || min > 59) return null;
+        return { h: h, m: min };
+      }
+
+      function normalizeInputForStorage(text, fmt) {
+        const raw = String(text);
+        if (raw.length > 0 && raw.charAt(0) === "'") {
+          return raw.slice(1);
+        }
+        if (fmt === "text") {
+          return raw;
+        }
+        const t = raw.trim();
+        if (t === "") return "";
+        if (fmt === "percent") {
+          if (t.indexOf("%") >= 0) {
+            const n = parseFloat(t.replace(/%/g, "").replace(",", "."));
+            if (!isNaN(n)) return n / 100;
+          }
+          const n = parseFloat(t.replace(",", "."));
+          if (!isNaN(n)) {
+            if (Math.abs(n) > 1) return n / 100;
+            return n;
+          }
+        }
+        const d = parseDateValue(t);
+        if (d && (fmt === "date" || fmt === "general")) {
+          return t;
+        }
+        const tm = parseTimeParts(t);
+        if (tm && (fmt === "time" || fmt === "general")) {
+          return t;
+        }
+        const num = parseFloat(t.replace(/\s/g, "").replace(",", "."));
+        if (!isNaN(num) && /^[\s\d.,+-eE]+$/.test(t.replace(/%/g, ""))) {
+          if (fmt === "date" || fmt === "time") return t;
+          return num;
+        }
+        return t;
+      }
+
+      function rawToFormulaString(sh, r, c) {
+        const v = sh.rows[r][c];
+        if (v === "" || v === null || v === undefined) return "";
+        if (typeof v === "number") return String(v);
+        const s = String(v);
+        if (s === "007") return "'007";
+        return s;
+      }
+
+      function formatCellDisplay(sh, r, c) {
+        const v = sh.rows[r][c];
+        const fmt = getFormat(sh, r, c);
+        if (v === "" || v === null || v === undefined) return "";
+        if (sh.hyperlinks && sh.hyperlinks[cellKey(r, c)]) return String(v);
+        if (fmt === "text") return String(v);
+        if (fmt === "percent" && typeof v === "number") {
+          return (
+            (v * 100).toLocaleString("ru-RU", {
+              maximumFractionDigits: 2,
+              minimumFractionDigits: 0,
+            }) + "%"
+          );
+        }
+        if (fmt === "currency" && typeof v === "number") {
+          return v.toLocaleString("ru-RU", {
+            style: "currency",
+            currency: "RUB",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        }
+        if (fmt === "number" && typeof v === "number") {
+          return v.toLocaleString("ru-RU", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        }
+        if (fmt === "date") {
+          const d = parseDateValue(v);
+          if (d) {
+            const dd = String(d.getDate()).padStart(2, "0");
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            return dd + "." + mm + "." + d.getFullYear();
+          }
+        }
+        if (fmt === "time") {
+          const tm = parseTimeParts(v);
+          if (tm) {
+            return (
+              String(tm.h).padStart(2, "0") + ":" + String(tm.m).padStart(2, "0")
+            );
+          }
+        }
+        if (typeof v === "number") return String(v);
+        return String(v);
+      }
+
+      function syncFormatSelect() {
+        const el = document.getElementById("format-select");
+        if (!el) return;
+        const sh = sheets[activeIndex];
+        const fmt = getFormat(sh, selR, selC);
+        el.value = fmt;
+      }
+
+      function applyFormatToSelection(fmt) {
+        const sh = sheets[activeIndex];
+        const r0 = Math.min(anchorR, selR);
+        const r1 = Math.max(anchorR, selR);
+        const c0 = Math.min(anchorC, selC);
+        const c1 = Math.max(anchorC, selC);
+        for (let r = r0; r <= r1; r++) {
+          for (let c = c0; c <= c1; c++) {
+            const key = cellKey(r, c);
+            sh.formats[key] = fmt;
+            if (fmt === "percent") {
+              const v = sh.rows[r][c];
+              if (typeof v === "number" && Math.abs(v) > 1) {
+                sh.rows[r][c] = v / 100;
+              }
+            }
+          }
+        }
+        renderGrid();
+        syncFormatSelect();
+        checkFormatProgress();
+      }
+
+      function checkFormatProgress() {
+        if (phase !== PHASE_FORMAT) return;
+        const t = FORMAT_TASKS[formatStep];
+        if (t && t.check()) {
+          formatStep += 1;
+          showToast("Задание выполнено — переходите к следующему.");
+          updateTaskBanner();
+        }
+      }
+
+      const taskBanner = document.getElementById("taskBanner");
+      const phaseLabel = document.getElementById("phaseLabel");
+      const taskText = document.getElementById("taskText");
+      const grid = document.getElementById("grid");
+      const sheetBar = document.getElementById("sheetBar");
+      const ctxMenu = document.getElementById("ctxMenu");
+      const modalMoveCopy = document.getElementById("modalMoveCopy");
+      const moveBefore = document.getElementById("moveBefore");
+      const chkCreateCopy = document.getElementById("chkCreateCopy");
+      const btnMoveOk = document.getElementById("btnMoveOk");
+      const btnMoveCancel = document.getElementById("btnMoveCancel");
+      const modalHyperlink = document.getElementById("modalHyperlink");
+      const btnLinkOk = document.getElementById("btnLinkOk");
+      const btnLinkCancel = document.getElementById("btnLinkCancel");
+      const toast = document.getElementById("toast");
+      const nameBox = document.getElementById("nameBox");
+      const formulaInput = document.getElementById("formulaInput");
+      const quickAccess = document.getElementById("quickAccess");
+
+      function commitFormulaBar() {
+        if (formulaBarCommitting) return;
+        const sh = sheets[activeIndex];
+        if (sh.hyperlinks && sh.hyperlinks[cellKey(selR, selC)]) return;
+        formulaBarCommitting = true;
+        const fmt = getFormat(sh, selR, selC);
+        const parsed = normalizeInputForStorage(formulaInput.value, fmt);
+        sh.rows[selR][selC] = parsed;
+        formulaBarCommitting = false;
+        renderGrid();
+        checkFormatProgress();
+      }
+
+      let selR = 1;
+      let selC = 1;
+      let anchorR = 1;
+      let anchorC = 1;
+      let toastTimer = null;
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("visible");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.remove("visible");
+        }, 4200);
+      }
+
+      function showWrong(hint) {
+        showToast(hint);
+      }
+
+      function updateTaskBanner() {
+        taskBanner.classList.remove("success");
+        phaseLabel.textContent = "Тема: ввод данных и форматы ячеек";
+        if (formatStep >= FORMAT_TASKS.length) {
+          taskText.textContent =
+            "Готово. Вы отработали число, текст с апострофом, дату, время, процентный и денежный форматы и текстовый формат.";
+          taskBanner.classList.add("success");
+          return;
+        }
+        taskText.textContent = FORMAT_TASKS[formatStep].text;
+      }
+
+      function renderGrid() {
+        const sh = sheets[activeIndex];
+        const rMin = Math.min(anchorR, selR);
+        const rMax = Math.max(anchorR, selR);
+        const cMin = Math.min(anchorC, selC);
+        const cMax = Math.max(anchorC, selC);
+        grid.innerHTML = "";
+        const thead = document.createElement("thead");
+        const hr = document.createElement("tr");
+        hr.appendChild(document.createElement("th"));
+        for (let c = 0; c < COLS; c++) {
+          const th = document.createElement("th");
+          th.textContent = colLabel(c);
+          hr.appendChild(th);
+        }
+        thead.appendChild(hr);
+        grid.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        for (let r = 0; r < ROWS; r++) {
+          const tr = document.createElement("tr");
+          const th = document.createElement("th");
+          th.textContent = String(r + 1);
+          tr.appendChild(th);
+          for (let c = 0; c < COLS; c++) {
+            const td = document.createElement("td");
+            const v = sh.rows[r][c];
+            const fmt = getFormat(sh, r, c);
+            td.textContent = formatCellDisplay(sh, r, c);
+            if (c === 0) td.classList.add("text-left");
+            else if (fmt === "text") td.classList.add("text-left");
+            else if (typeof v === "string" && v !== "") {
+              const isDate = parseDateValue(v);
+              const isTime = parseTimeParts(v);
+              if (!isDate && !isTime) td.classList.add("text-left");
+            }
+            td.dataset.r = String(r);
+            td.dataset.c = String(c);
+            const ck = cellKey(r, c);
+            if (sh.bold[ck]) td.style.fontWeight = "700";
+            if (sh.hyperlinks && sh.hyperlinks[ck]) {
+              td.classList.add("has-link");
+              td.title = sh.hyperlinks[ck];
+            }
+            if (r >= rMin && r <= rMax && c >= cMin && c <= cMax) td.classList.add("range-cell");
+            if (r === selR && c === selC) td.classList.add("range-active");
+            tr.appendChild(td);
+          }
+          tbody.appendChild(tr);
+        }
+        grid.appendChild(tbody);
+        syncFormulaBar();
+        syncFormatSelect();
+      }
+
+      function syncFormulaBar() {
+        const sh = sheets[activeIndex];
+        nameBox.value = colLabel(selC) + (selR + 1);
+        formulaInput.value = rawToFormulaString(sh, selR, selC);
+      }
+
+      function renderSheetTabs() {
+        sheetBar.innerHTML = "";
+        sheets.forEach(function (s, i) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "sheet-tab" + (i === activeIndex ? " active" : "");
+          if (s.tabColor) {
+            const dot = document.createElement("span");
+            dot.className = "color-dot";
+            dot.style.background = s.tabColor;
+            btn.appendChild(dot);
+          }
+          if (renameIndex === i) {
+            const inp = document.createElement("input");
+            inp.type = "text";
+            inp.className = "rename-input";
+            inp.value = s.name;
+            inp.addEventListener("click", function (e) {
+              e.stopPropagation();
+            });
+            inp.addEventListener("keydown", function (e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                applyRename(i, inp.value.trim());
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                renameIndex = -1;
+                renderSheetTabs();
+              }
+            });
+            btn.appendChild(inp);
+            setTimeout(function () {
+              inp.focus();
+              inp.select();
+            }, 0);
+          } else {
+            btn.appendChild(document.createTextNode(s.name));
+          }
+          btn.addEventListener("click", function (e) {
+            if (renameIndex === i) return;
+            if (e.detail === 2) {
+              renameIndex = i;
+              renderSheetTabs();
+              return;
+            }
+            if (activeIndex !== i) {
+              commitFormulaBar();
+              activeIndex = i;
+              selR = 1;
+              selC = 1;
+              anchorR = 1;
+              anchorC = 1;
+              renderSheetTabs();
+              renderGrid();
+            }
+          });
+          btn.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+            openSheetContext(i, e.clientX, e.clientY);
+          });
+          sheetBar.appendChild(btn);
+        });
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "sheet-add";
+        addBtn.textContent = "+";
+        addBtn.title = "Вставить лист";
+        addBtn.addEventListener("click", function () {
+          showWrong("В этом упражнении достаточно одного листа — сосредоточьтесь на столбце B.");
+        });
+        sheetBar.appendChild(addBtn);
+      }
+
+      function openSheetContext(index, x, y) {
+        ctxMenu.innerHTML = "";
+        const items = [
+          { label: "Вставить…", action: "insert", hint: "Для упражнения вставка пустого листа не нужна." },
+          { label: "Удалить", disabled: false, hint: "Удаление не требуется в этом задании." },
+          { sep: true },
+          { label: "Переименовать", action: "rename" },
+          { label: "Переместить или скопировать…", action: "movecopy" },
+          { sep: true },
+          { label: "Цвет ярлыка…", action: "tabcolor" },
+          { label: "Скрыть", hint: "Для задания скрытие листа не используйте." },
+          { label: "Показать…", action: "showhidden", hint: "Скрытых листов в этом тренажёре нет — выберите другой пункт меню." },
+        ];
+        items.forEach(function (it) {
+          if (it.sep) {
+            const s = document.createElement("div");
+            s.className = "ctx-sep";
+            ctxMenu.appendChild(s);
+            return;
+          }
+          const el = document.createElement("div");
+          el.className = "ctx-item" + (it.disabled ? " disabled" : "");
+          el.textContent = it.label;
+          el.addEventListener("click", function () {
+            if (it.disabled) return;
+            hideCtx();
+            if (it.action === "insert") {
+              showWrong(it.hint);
+              return;
+            }
+            if (it.action === "showhidden") {
+              showWrong(it.hint);
+              return;
+            }
+            if (it.action === "movecopy") {
+              openMoveCopyModal(index);
+              return;
+            }
+            if (it.action === "rename") {
+              renameIndex = index;
+              renderSheetTabs();
+              return;
+            }
+            if (it.action === "tabcolor") {
+              showWrong("Цвет ярлыка в этом задании не проверяется.");
+              return;
+            }
+            if (it.label === "Удалить") {
+              showWrong("Лист удалять не нужно — это учебный файл.");
+              return;
+            }
+            if (it.label === "Скрыть") {
+              showWrong("Не скрывайте лист в этом упражнении — так сложнее продолжить.");
+              return;
+            }
+            showWrong(it.hint || "Выберите другой пункт.");
+          });
+          ctxMenu.appendChild(el);
+        });
+        ctxMenu.style.left = Math.min(x, window.innerWidth - 240) + "px";
+        ctxMenu.style.top = Math.min(y, window.innerHeight - 280) + "px";
+        ctxMenu.classList.add("visible");
+      }
+
+      function hideCtx() {
+        ctxMenu.classList.remove("visible");
+      }
+
+      function openMoveCopyModal(sourceIndex) {
+        moveBefore.innerHTML = "";
+        sheets.forEach(function (s, i) {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = s.name;
+          moveBefore.appendChild(opt);
+        });
+        const last = document.createElement("option");
+        last.value = "-1";
+        last.textContent = "(переместить в конец)";
+        moveBefore.appendChild(last);
+        chkCreateCopy.checked = false;
+        modalMoveCopy.dataset.source = String(sourceIndex);
+        modalMoveCopy.classList.add("visible");
+      }
+
+      function closeMoveCopy() {
+        modalMoveCopy.classList.remove("visible");
+      }
+
+      btnMoveCancel.addEventListener("click", closeMoveCopy);
+      btnMoveOk.addEventListener("click", function () {
+        const sourceIndex = Number(modalMoveCopy.dataset.source);
+        if (!chkCreateCopy.checked) {
+          showWrong("Поставьте галочку «Создать копию» — так в Excel делают копию листа, а не перенос.");
+          return;
+        }
+        const beforeVal = moveBefore.value;
+        const sh = deepSheet(sheets[sourceIndex]);
+        const newName = sh.name.match(/\(\d+\)$/) ? sh.name : sh.name + " (2)";
+        let insertAt = sheets.length;
+        if (beforeVal !== "-1") insertAt = Number(beforeVal);
+        sh.name = newName;
+        sh.hyperlinks = sh.hyperlinks || {};
+        sheets.splice(insertAt, 0, sh);
+        activeIndex = insertAt;
+        closeMoveCopy();
+        renderSheetTabs();
+        renderGrid();
+        showToast("Лист скопирован.");
+      });
+
+      function applyRename(i, name) {
+        renameIndex = -1;
+        if (!name) {
+          renderSheetTabs();
+          return;
+        }
+        const exists = sheets.some(function (s, j) {
+          return j !== i && s.name === name;
+        });
+        if (exists) {
+          showWrong("Лист с таким именем уже есть. Выберите другое имя.");
+          renderSheetTabs();
+          return;
+        }
+        sheets[i].name = name;
+        renderSheetTabs();
+        renderGrid();
+        updateTaskBanner();
+      }
+
+      document.addEventListener("click", function (e) {
+        if (!ctxMenu.contains(e.target)) hideCtx();
+      });
+
+      function isShiftClick(e) {
+        return (
+          !!e.shiftKey ||
+          (typeof e.getModifierState === "function" && e.getModifierState("Shift"))
+        );
+      }
+
+      grid.addEventListener("click", function (e) {
+        const td = e.target && e.target.closest && e.target.closest("td");
+        if (!td) return;
+        e.preventDefault();
+        const r = Number(td.dataset.r);
+        const c = Number(td.dataset.c);
+        const same = r === selR && c === selC;
+        if (!same) commitFormulaBar();
+        if (isShiftClick(e)) {
+          selR = r;
+          selC = c;
+        } else {
+          anchorR = r;
+          anchorC = c;
+          selR = r;
+          selC = c;
+        }
+        renderGrid();
+      });
+
+      formulaInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          commitFormulaBar();
+          if (selR < ROWS - 1) {
+            selR += 1;
+            anchorR = selR;
+            anchorC = selC;
+            renderGrid();
+          }
+        }
+      });
+
+      formulaInput.addEventListener("blur", function () {
+        commitFormulaBar();
+      });
+
+      document.getElementById("format-select").addEventListener("change", function () {
+        applyFormatToSelection(this.value);
+      });
+
+      function activateRibbonTab(tab) {
+        document.querySelectorAll(".ribbon-tabs button").forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-tab") === tab);
+        });
+        document.querySelectorAll(".ribbon-panel").forEach(function (p) {
+          p.classList.toggle("visible", p.getAttribute("data-panel") === tab);
+        });
+      }
+
+      document.querySelectorAll(".ribbon-tabs button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          activateRibbonTab(btn.getAttribute("data-tab"));
+        });
+      });
+
+      document.getElementById("btn-bold").addEventListener("click", function () {
+        const sh = sheets[activeIndex];
+        sh.bold[cellKey(selR, selC)] = !sh.bold[cellKey(selR, selC)];
+        renderGrid();
+      });
+
+      document.getElementById("btn-italic").addEventListener("click", function () {
+        showWrong("Курсив в этом упражнении не задан — используйте столбец B и формат «Число».");
+      });
+
+      document.getElementById("btn-merge").addEventListener("click", function () {
+        showWrong("Объединение ячеек в этом задании не требуется.");
+      });
+
+      document.getElementById("btn-sum").addEventListener("click", function () {
+        showWrong("Автосумма здесь не задана — сосредоточьтесь на типах данных и форматах.");
+      });
+
+      document.getElementById("btn-hyperlink").addEventListener("click", function () {
+        modalHyperlink.classList.add("visible");
+      });
+
+      document.getElementById("btn-table").addEventListener("click", function () {
+        showWrong("Создание таблицы в этом упражнении не требуется.");
+      });
+
+      ["btn-chart", "btn-margins", "btn-orient", "btn-fn-wizard", "btn-sort", "btn-filter", "btn-gridlines", "btn-freeze"].forEach(function (id) {
+        document.getElementById(id).addEventListener("click", function () {
+          showWrong("Эта команда не входит в упражнение про ввод данных и форматы.");
+        });
+      });
+
+      btnLinkCancel.addEventListener("click", function () {
+        modalHyperlink.classList.remove("visible");
+      });
+      btnLinkOk.addEventListener("click", function () {
+        const url = document.getElementById("hyperlinkUrl").value.trim() || "https://";
+        const sh = sheets[activeIndex];
+        if (!sh.hyperlinks) sh.hyperlinks = {};
+        sh.hyperlinks[cellKey(selR, selC)] = url;
+        sh.rows[selR][selC] = "Ссылка";
+        modalHyperlink.classList.remove("visible");
+        renderGrid();
+        showToast("Гиперссылка вставлена.");
+      });
+
+      quickAccess.querySelectorAll("button").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          showWrong(
+            "Панель быстрого доступа в этом упражнении не используется. Работайте со строкой формул и группой «Число» на вкладке Главная."
+          );
+        });
+      });
+
+      updateTaskBanner();
+      renderSheetTabs();
+      renderGrid();
+
+      (function initOnboarding() {
+        const root = document.getElementById("onboardingRoot");
+        const titleEl = document.getElementById("onboardingTitle");
+        const subEl = document.getElementById("onboardingSubtitle");
+        const btn = document.getElementById("onboardingBtn");
+        let step = 1;
+        titleEl.textContent = "Добро пожаловать в тренажёр!";
+        subEl.textContent =
+          "Вы потренируетесь вводить числа, текст, даты и время и менять формат ячеек на вкладке Главная.";
+        subEl.classList.remove("is-hidden");
+        btn.textContent = "Далее";
+        root.classList.add("is-open");
+        document.body.style.overflow = "hidden";
+        btn.addEventListener("click", function () {
+          if (step === 1) {
+            step = 2;
+            titleEl.textContent = "Ответы вводите в столбец B; формат выбирайте в группе «Число».";
+            subEl.textContent = "";
+            subEl.classList.add("is-hidden");
+            btn.textContent = "Начать";
+            taskBanner.classList.add("onboarding-lit");
+          } else {
+            root.classList.remove("is-open");
+            taskBanner.classList.remove("onboarding-lit");
+            subEl.classList.remove("is-hidden");
+            document.body.style.overflow = "";
+          }
+        });
+      })();
+    })();
+  </script>
+</body>
+</html>
