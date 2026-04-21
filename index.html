@@ -707,6 +707,17 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="modalComplete" aria-modal="true" role="dialog" aria-labelledby="completeMessage">
+    <div class="modal">
+      <div class="modal-body" style="padding-top:14px;">
+        <p id="completeMessage" style="margin:0;line-height:1.5;font-weight:600;font-size:13px;"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="primary" id="btnCompleteOk">OK</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <div
@@ -814,7 +825,7 @@
           "",
         ];
         r[8] = [
-          "Без подсказки по названию: в B9 введите 0,375 и подберите на ленте такой формат, чтобы на экране было видно 37,5% (доля от целого).",
+          "В B9 введите 0,375 и подберите на ленте такой формат, чтобы на экране было видно 37,5% (доля от целого).",
           "",
           "",
           "",
@@ -949,7 +960,7 @@
         },
         {
           id: "percent375",
-          text: "В B9 введите 0,375 и сами подберите формат на ленте так, чтобы число отображалось как 37,5% — без явного названия формата в условии.",
+          text: "В B9 введите 0,375 и сами подберите формат на ленте так, чтобы число отображалось как 37,5%.",
           check: function () {
             const sh = sheets[0];
             const fmt = getFormat(sh, 8, 1);
@@ -960,6 +971,9 @@
           },
         },
       ];
+
+      const COMPLETE_MESSAGE =
+        "Готово. Вы отработали число, текст с апострофом, дату, время, процент, деньги, текстовый формат и подбор формата по виду результата.";
 
       function getFormat(sh, r, c) {
         return sh.formats[cellKey(r, c)] || "general";
@@ -1128,8 +1142,14 @@
         const t = FORMAT_TASKS[formatStep];
         if (t && t.check()) {
           formatStep += 1;
-          showToast("Задание выполнено — переходите к следующему.");
           updateTaskBanner();
+          if (formatStep >= FORMAT_TASKS.length) {
+            document.getElementById("completeMessage").textContent =
+              COMPLETE_MESSAGE;
+            document.getElementById("modalComplete").classList.add("visible");
+          } else {
+            showToast("Задание выполнено — переходите к следующему.");
+          }
         }
       }
 
@@ -1188,9 +1208,11 @@
         const ob = document.getElementById("onboardingRoot");
         const m1 = document.getElementById("modalMoveCopy");
         const m2 = document.getElementById("modalHyperlink");
+        const m3 = document.getElementById("modalComplete");
         return (
           (m1 && m1.classList.contains("visible")) ||
           (m2 && m2.classList.contains("visible")) ||
+          (m3 && m3.classList.contains("visible")) ||
           (ob && ob.classList.contains("is-open"))
         );
       }
@@ -1271,8 +1293,7 @@
         taskBanner.classList.remove("success");
         phaseLabel.textContent = "Тема: ввод данных и форматы ячеек";
         if (formatStep >= FORMAT_TASKS.length) {
-          taskText.textContent =
-            "Готово. Вы отработали число, текст с апострофом, дату, время, процент, деньги, текстовый формат и подбор формата по виду результата.";
+          taskText.textContent = COMPLETE_MESSAGE;
           taskBanner.classList.add("success");
           return;
         }
@@ -1676,6 +1697,9 @@
 
       btnLinkCancel.addEventListener("click", function () {
         modalHyperlink.classList.remove("visible");
+      });
+      document.getElementById("btnCompleteOk").addEventListener("click", function () {
+        document.getElementById("modalComplete").classList.remove("visible");
       });
       btnLinkOk.addEventListener("click", function () {
         const url = document.getElementById("hyperlinkUrl").value.trim() || "https://";
