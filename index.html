@@ -1705,29 +1705,27 @@
         const titleEl = document.getElementById("onboardingTitle");
         const subEl = document.getElementById("onboardingSubtitle");
         const btn = document.getElementById("onboardingBtn");
-        let step = 1;
         titleEl.textContent = "Добро пожаловать в тренажёр!";
         subEl.textContent =
-          "Вы потренируетесь вводить числа, текст, даты и время и менять формат ячеек на вкладке Главная.";
+          "Вы потренируетесь вводить числа, текст, даты и время и менять формат ячеек на вкладке Главная. Ответы вводите в столбец B, формат выбирайте в группе «Число».";
         subEl.classList.remove("is-hidden");
-        btn.textContent = "Далее";
+        btn.textContent = "Начать";
         root.classList.add("is-open");
         document.body.style.overflow = "hidden";
         btn.addEventListener("click", function () {
-          if (step === 1) {
-            step = 2;
-            titleEl.textContent = "Ответы вводите в столбец B; формат выбирайте в группе «Число».";
-            subEl.textContent = "";
-            subEl.classList.add("is-hidden");
-            btn.textContent = "Начать";
-            taskBanner.classList.add("onboarding-lit");
-          } else {
-            root.classList.remove("is-open");
-            taskBanner.classList.remove("onboarding-lit");
-            subEl.classList.remove("is-hidden");
-            document.body.style.overflow = "";
-            gridScroll.focus();
-          }
+          root.classList.remove("is-open");
+          document.body.style.overflow = "";
+          taskBanner.classList.add("onboarding-lit");
+          gridScroll.focus();
+          setTimeout(function () {
+            document.addEventListener(
+              "click",
+              function () {
+                taskBanner.classList.remove("onboarding-lit");
+              },
+              { capture: true, once: true }
+            );
+          }, 0);
         });
       })();
     })();
